@@ -171,15 +171,29 @@ window.addEventListener('load',function() {
 						}
 						var body = encodeURIComponent("From "+inputs.item(0).value+"\n\n"+inputs.item(1).value);
 						var subject = encodeURIComponent("RotationAnimation Message");
-						window.open("mailto:juuanv@gmail.com?subject="+subject+"&body="+body,"_blank");
-						setTimeout(function() {
-							for(var i=0;i<inputs.length;i++) {
-								inputs.item(i).removeAttribute('disabled');
-								inputs.item(i).value = "";
-							}
-							self.disabled = false;
-							tell("Your message has been sent");
-						},1500);
+						var xhr = new XMLHttpRequest();
+                        xhr.open("POST","data.php",true);
+                        xhr.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+                        xhr.send("type=message&body="+body+"&subject="+subject);
+                        xhr.addEventListener('readystatechange',function() {
+                                if(this.status == 200 && xhr.readyState == 4) {
+                                        if(this.responseText == "success") {
+                                                for(var i=0;i<inputs.length;i++) {
+                                                        inputs.item(i).removeAttribute('disabled');
+                                                        inputs.item(i).value = "";
+                                                }
+                                                self.disabled = false;
+                                                tell("Your message has been sent");
+                                        } else {
+                                                var ServerErrorKey = {
+                                                        "Error 1":"Request type not specified",
+                                                        "Error 2":"There was an error sending your message"
+                                                }
+                                                if(this.responseText.split(" ")[0] == "Error") tell(ServerErrorKey[this.responseText]);
+                                                else tell(this.responseText);
+                                        }
+                                }
+                        });
 					} else {
 						tell("Please enter a valid email");
 					}
